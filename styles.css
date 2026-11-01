@@ -91,8 +91,7 @@ dialog h2 span { color: var(--cyan); }
 dialog ol { padding-left: 20px; }
 dialog li { padding-left: 5px; margin: 12px 0; }
 .close-button { position: absolute; top: 8px; right: 12px; color: #aaa; background: none; border: 0; font-size: 30px; }
-.keyboard-help, .attribution { font-size: 12px; color: #888; }
-kbd { color: #ccc; white-space: nowrap; }
+.input-help, .attribution { font-size: 12px; color: #888; }
 .attribution { padding-top: 12px; border-top: 1px solid #333; }
 .attribution a { color: var(--cyan); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }

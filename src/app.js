@@ -3,7 +3,6 @@ import { cleanScores, readScores, writeScores } from './scores.js';
 
 const $ = id => document.getElementById(id);
 const game = new TileGame();
-const keys = ['1', '2', '3', '4', 'q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v'];
 const tapNotes = [523.25, 587.33, 659.25, 783.99, 880, 987.77];
 let storage;
 try { storage = window.localStorage; } catch { /* Private browsing can deny storage. */ }
@@ -61,6 +60,7 @@ function tone(frequency, duration = .06, type = 'sine', amplitude = .045) {
 const tiles = Array.from({ length: GRID_SIZE }, (_, index) => {
   const tile = document.createElement('button');
   tile.type = 'button';
+  tile.tabIndex = -1;
   tile.className = 'tile';
   tile.dataset.index = index;
   tile.addEventListener('pointerdown', event => {
@@ -68,17 +68,13 @@ const tiles = Array.from({ length: GRID_SIZE }, (_, index) => {
     event.preventDefault();
     tap(index);
   });
-  // Keyboard activation and assistive technologies dispatch clicks with detail 0.
-  tile.addEventListener('click', event => {
-    if (event.detail === 0) tap(index);
-  });
   $('board').append(tile);
   return tile;
 });
 $('board').tabIndex = -1;
 
 function tileLabel(index, black) {
-  return `${black ? 'Black' : 'White'} tile, row ${Math.floor(index / 4) + 1}, column ${index % 4 + 1} (${keys[index].toUpperCase()})`;
+  return `${black ? 'Black' : 'White'} tile, row ${Math.floor(index / 4) + 1}, column ${index % 4 + 1}`;
 }
 
 function resetBoard() {
@@ -331,20 +327,6 @@ $('fullscreen').addEventListener('click', async () => {
 });
 document.addEventListener('fullscreenchange', () => {
   $('fullscreen').setAttribute('aria-label', `${document.fullscreenElement ? 'Exit' : 'Enter'} fullscreen`);
-});
-document.addEventListener('keydown', event => {
-  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help-dialog').open) return;
-  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
-  if (event.key === 'Enter' && (screen === 'home' || screen === 'results')) {
-    // Preserve native Enter behavior on other focused menu controls.
-    if (document.activeElement?.matches('button') && !['start', 'retry'].includes(document.activeElement.id)) return;
-    event.preventDefault();
-    startCountdown();
-  }
-  if (event.key === 'Escape' && screen === 'countdown') showHome();
-  if (screen !== 'playing') return;
-  const index = keys.indexOf(event.key.toLowerCase());
-  if (index !== -1) { event.preventDefault(); tap(index); }
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && screen === 'countdown') showHome();

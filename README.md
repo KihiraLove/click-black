@@ -10,7 +10,7 @@ A front-end-only recreation of the White Tile 2 mode shown in the supplied dontt
 - Tapping white or running out of time ends the run.
 - Your eight best scores are saved in this browser using localStorage. No account or network connection is needed while playing.
 
-Mouse and touch are supported. Keyboard rows are `1 2 3 4`, `Q W E R`, `A S D F`, and `Z X C V`. Press Enter on Play / Play again to start, or Escape during the countdown to return to the menu. Optional synthesized sound starts muted, with six random pitches for successful taps, no consecutive repeats, and a volume slider beside the sound toggle. The timer keeps running when the tab is in the background.
+Click the black tiles with your mouse to warm up your aim and clicking speed. Touch input is also supported. Optional synthesized sound starts muted, with six random pitches for successful taps, no consecutive repeats, and a volume slider beside the sound toggle. The timer keeps running when the tab is in the background.
 
 ## Local development
 
