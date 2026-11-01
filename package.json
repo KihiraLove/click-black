@@ -1,9 +1,9 @@
 {
-  "name": "white-tile-2",
+  "name": "click-black",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A front-end-only recreation of the White Tile 2 reflex game.",
+  "description": "Click Black, a front-end-only tile-tapping reflex game.",
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",

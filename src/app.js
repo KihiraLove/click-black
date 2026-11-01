@@ -10,7 +10,9 @@ let scores = readScores(storage);
 let screen = 'home';
 let frame = 0;
 let soundOn = false;
+let volume = Number($('volume').value) / 100;
 let audioContext;
+let masterGain;
 let latestId;
 let scoreFlash;
 let bonusTimer;
@@ -30,19 +32,24 @@ function clearTimers() {
   tileTimers.clear();
 }
 
-function tone(frequency, duration = .06, type = 'sine', volume = .045) {
-  if (!soundOn) return;
+function tone(frequency, duration = .06, type = 'sine', amplitude = .045) {
+  if (!soundOn || volume === 0) return;
   try {
-    audioContext ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = audioContext.createGain();
+      masterGain.gain.value = volume;
+      masterGain.connect(audioContext.destination);
+    }
     if (audioContext.state === 'suspended') audioContext.resume().catch(() => {});
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     oscillator.type = type;
     oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(volume, audioContext.currentTime);
+    gain.gain.setValueAtTime(amplitude, audioContext.currentTime);
     gain.gain.exponentialRampToValueAtTime(.001, audioContext.currentTime + duration);
     oscillator.connect(gain);
-    gain.connect(audioContext.destination);
+    gain.connect(masterGain);
     oscillator.start();
     oscillator.stop(audioContext.currentTime + duration);
     oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
@@ -96,6 +103,7 @@ function updateHud() {
   $('progress-fill').style.width = `${progress / TAPS_PER_ROUND * 100}%`;
   $('progress').setAttribute('aria-valuenow', progress);
   $('progress-caption').textContent = `${TAPS_PER_ROUND - progress} taps to +10 seconds`;
+  $('progress-caption').hidden = false;
 }
 
 function showHome() {
@@ -117,7 +125,8 @@ function showHome() {
   $('time').classList.remove('urgent');
   $('progress-fill').style.width = '0%';
   $('progress').setAttribute('aria-valuenow', '0');
-  $('progress-caption').textContent = '40 taps. 10 seconds. Keep going.';
+  $('progress-caption').textContent = '';
+  $('progress-caption').hidden = true;
   resetBoard();
   $('start').focus({ preventScroll: true });
 }
@@ -140,7 +149,8 @@ function startCountdown() {
   $('best').textContent = scores[0]?.score ?? 0;
   $('progress-fill').style.width = '0%';
   $('progress').setAttribute('aria-valuenow', '0');
-  $('progress-caption').textContent = '10 seconds for every 40 taps';
+  $('progress-caption').textContent = '';
+  $('progress-caption').hidden = true;
   $('help').disabled = true;
   resetBoard();
   let count = 3;
@@ -203,7 +213,8 @@ function tap(index) {
   $('score').classList.add('hit');
   clearTimeout(scoreFlash);
   scoreFlash = later(() => $('score').classList.remove('hit'), 160);
-  tone([523.25, 587.33, 659.25, 783.99, 880][game.score % 5]);
+  const notes = [523.25, 587.33, 659.25, 783.99, 880];
+  tone(notes[Math.floor(Math.random() * notes.length)]);
   if (result.bonus) {
     clearTimeout(bonusTimer);
     $('bonus').hidden = false;
@@ -232,9 +243,8 @@ function finish() {
   scores = cleanScores([...scores, ...readScores(storage)]
     .filter((entry, index, entries) => entries.findIndex(other => other.id === entry.id) === index)
     .concat({ score: game.score, date: new Date().toISOString(), id: latestId }));
-  const saved = writeScores(storage, scores);
-  $('storage-note').textContent = saved ? 'Scores stay in this browser.' : 'Storage is unavailable. Scores last for this visit.';
-  later(() => showResults(game.score, message, game.score > previousBest), 1100);
+  writeScores(storage, scores);
+  later(() => showResults(game.score, game.reason === 'white' ? '' : message, game.score > previousBest), 1100);
 }
 
 function showResults(score = null, message = 'Your personal bests, all in one place.', record = false) {
@@ -253,6 +263,7 @@ function showResults(score = null, message = 'Your personal bests, all in one pl
     $('results-title').append(number);
   }
   $('result-message').textContent = message;
+  $('result-message').hidden = !message;
   $('record-message').hidden = !record;
   $('scores-list').replaceChildren();
   const formatter = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'numeric', day: 'numeric' });
@@ -282,6 +293,11 @@ $('sound').addEventListener('click', () => {
   $('sound-waves').setAttribute('d', soundOn ? 'M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14' : 'm16 9 6 6m0-6-6 6');
   tone(660, .1);
 });
+$('volume').addEventListener('input', () => {
+  volume = Number($('volume').value) / 100;
+  $('volume').setAttribute('aria-valuetext', `${$('volume').value}%`);
+  if (masterGain) masterGain.gain.setTargetAtTime(volume, audioContext.currentTime, .01);
+});
 $('help').addEventListener('click', () => $('help-dialog').showModal());
 $('close-help').addEventListener('click', () => $('help-dialog').close());
 $('help-dialog').addEventListener('click', event => {
@@ -301,6 +317,7 @@ document.addEventListener('fullscreenchange', () => {
 });
 document.addEventListener('keydown', event => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || $('help-dialog').open) return;
+  if (event.target.closest('input, textarea, select, [contenteditable="true"]')) return;
   if (event.key === 'Enter' && (screen === 'home' || screen === 'results')) {
     // Preserve native Enter behavior on other focused menu controls.
     if (document.activeElement?.matches('button') && !['start', 'retry'].includes(document.activeElement.id)) return;
