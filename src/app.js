@@ -4,12 +4,14 @@ import { cleanScores, readScores, writeScores } from './scores.js';
 const $ = id => document.getElementById(id);
 const game = new TileGame();
 const keys = ['1', '2', '3', '4', 'q', 'w', 'e', 'r', 'a', 's', 'd', 'f', 'z', 'x', 'c', 'v'];
+const tapNotes = [523.25, 587.33, 659.25, 783.99, 880, 987.77];
 let storage;
 try { storage = window.localStorage; } catch { /* Private browsing can deny storage. */ }
 let scores = readScores(storage);
 let screen = 'home';
 let frame = 0;
 let soundOn = false;
+let lastTapPitch;
 let volume = Number($('volume').value) / 100;
 let audioContext;
 let masterGain;
@@ -213,8 +215,9 @@ function tap(index) {
   $('score').classList.add('hit');
   clearTimeout(scoreFlash);
   scoreFlash = later(() => $('score').classList.remove('hit'), 160);
-  const notes = [523.25, 587.33, 659.25, 783.99, 880];
-  tone(notes[Math.floor(Math.random() * notes.length)]);
+  const notes = tapNotes.filter(note => note !== lastTapPitch);
+  lastTapPitch = notes[Math.floor(Math.random() * notes.length)];
+  tone(lastTapPitch);
   if (result.bonus) {
     clearTimeout(bonusTimer);
     $('bonus').hidden = false;
