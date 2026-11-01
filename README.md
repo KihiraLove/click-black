@@ -6,6 +6,7 @@ A front-end-only recreation of the White Tile 2 mode shown in the supplied dontt
 
 - Tap any of the three black tiles in the fixed 4×4 grid. Each hit adds one point and creates a new black tile elsewhere.
 - Start with 10 seconds. Every 40 correct taps adds another 10 seconds to the remaining time.
+- Complete an even-numbered set of 40 tiles (scores 80, 160, 240, …) in 8 seconds or less to trigger Overdrive: a one-second all-black board with yellow text. Input and the timer pause during the transition, then normal play resumes. Each set is timed separately, excluding the transition.
 - Tapping white or running out of time ends the run.
 - Your eight best scores are saved in this browser using localStorage. No account or network connection is needed while playing.
 

@@ -82,6 +82,8 @@ function tileLabel(index, black) {
 }
 
 function resetBoard() {
+  $('board').classList.remove('overdrive');
+  $('overdrive').hidden = true;
   tiles.forEach((tile, index) => {
     tile.className = 'tile';
     tile.setAttribute('aria-label', tileLabel(index, false));
@@ -97,6 +99,16 @@ function setBlack(index, animate = false) {
 }
 
 function updateHud() {
+  const overdrive = game.overdriveUntil > 0;
+  if ($('board').classList.contains('overdrive') !== overdrive) {
+    $('board').classList.toggle('overdrive', overdrive);
+    $('overdrive').hidden = !overdrive;
+    if (overdrive) $('hint').hidden = true;
+    tiles.forEach((tile, index) => {
+      tile.disabled = overdrive;
+      tile.setAttribute('aria-label', tileLabel(index, overdrive || game.black.has(index)));
+    });
+  }
   $('score').textContent = game.score;
   const seconds = Math.ceil(game.remaining / 1000);
   $('time').textContent = String(seconds).padStart(2, '0');
@@ -206,7 +218,7 @@ function tap(index) {
   if (result.type !== 'hit') return;
   clearTimeout(tileTimers.get(index));
   tiles[index].className = 'tile correct';
-  tiles[index].setAttribute('aria-label', tileLabel(index, false));
+  tiles[index].setAttribute('aria-label', tileLabel(index, result.overdrive));
   tileTimers.set(index, later(() => {
     tiles[index].classList.remove('correct');
     tileTimers.delete(index);
@@ -220,9 +232,11 @@ function tap(index) {
   tone(lastTapPitch);
   if (result.bonus) {
     clearTimeout(bonusTimer);
-    $('bonus').hidden = false;
-    bonusTimer = later(() => { $('bonus').hidden = true; }, 950);
-    $('announcement').textContent = `${game.score} tiles. Ten extra seconds!`;
+    $('bonus').hidden = result.overdrive;
+    if (!result.overdrive) bonusTimer = later(() => { $('bonus').hidden = true; }, 950);
+    $('announcement').textContent = result.overdrive
+      ? `Overdrive! ${game.score} tiles. Ten extra seconds!`
+      : `${game.score} tiles. Ten extra seconds!`;
     tone(1046.5, .2);
   }
 }

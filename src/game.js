@@ -2,6 +2,8 @@ export const GRID_SIZE = 16;
 export const BLACK_TILES = 3;
 export const ROUND_MS = 10_000;
 export const TAPS_PER_ROUND = 40;
+export const OVERDRIVE_THRESHOLD_MS = 8000;
+export const OVERDRIVE_MS = 1000;
 
 /** Pure game rules; callers supply a monotonic timestamp in milliseconds. */
 export class TileGame {
@@ -13,6 +15,8 @@ export class TileGame {
     this.deadline = 0;
     this.remaining = ROUND_MS;
     this.reason = null;
+    this.setStartedAt = 0;
+    this.overdriveUntil = 0;
   }
 
   start(now) {
@@ -21,6 +25,8 @@ export class TileGame {
     this.deadline = now + ROUND_MS;
     this.remaining = ROUND_MS;
     this.reason = null;
+    this.setStartedAt = now;
+    this.overdriveUntil = 0;
     this.black.clear();
     while (this.black.size < BLACK_TILES) this.addTile();
   }
@@ -35,6 +41,11 @@ export class TileGame {
 
   tick(now) {
     if (this.status !== 'playing') return;
+    if (now < this.overdriveUntil) {
+      this.remaining = this.deadline - this.overdriveUntil;
+      return;
+    }
+    this.overdriveUntil = 0;
     this.remaining = Math.max(0, this.deadline - now);
     if (this.remaining === 0) this.end('timeout');
   }
@@ -45,6 +56,7 @@ export class TileGame {
     }
     this.tick(now);
     if (this.status !== 'playing') return { type: 'over', reason: this.reason };
+    if (this.overdriveUntil) return { type: 'ignored' };
     if (!this.black.has(index)) {
       this.end('white');
       return { type: 'over', reason: this.reason, index };
@@ -53,11 +65,21 @@ export class TileGame {
     const replacement = this.addTile(index);
     this.score += 1;
     const bonus = this.score % TAPS_PER_ROUND === 0;
+    let overdrive = false;
     if (bonus) {
       this.deadline += ROUND_MS;
+      const completedSets = this.score / TAPS_PER_ROUND;
+      overdrive = completedSets % 2 === 0 && now - this.setStartedAt <= OVERDRIVE_THRESHOLD_MS;
+      this.setStartedAt = now;
+      if (overdrive) {
+        this.overdriveUntil = now + OVERDRIVE_MS;
+        this.deadline += OVERDRIVE_MS;
+        this.setStartedAt = this.overdriveUntil;
+      }
       this.remaining = this.deadline - now;
+      if (overdrive) this.remaining -= OVERDRIVE_MS;
     }
-    return { type: 'hit', index, replacement, bonus };
+    return { type: 'hit', index, replacement, bonus, overdrive };
   }
 
   end(reason) {

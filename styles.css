@@ -32,6 +32,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .tile.correct { animation: correct .45s ease-out forwards; color: #ba922e; }
 .tile.correct::after { content: "+1"; position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--board-size) * .056); font-weight: 300; animation: score-fade .45s ease-out forwards; pointer-events: none; }
 .tile.wrong { background: #e73320; }
+.board.overdrive .tile { background: #000; animation: none; }
+.board.overdrive .tile::after { display: none; }
 .tile:focus-visible { z-index: 1; outline: 3px solid #2589d7; outline-offset: -5px; }
 .overlay { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgb(0 0 0 / 91%); }
 .home { text-align: center; }
@@ -48,6 +50,7 @@ h1 span { color: var(--cyan); }
 .text-button:hover { color: #fff; }
 .countdown-overlay { color: var(--cyan); font-size: calc(var(--board-size) * .28); font-weight: 300; }
 .board-hint { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; z-index: 1; color: #e8a82b; font-size: calc(var(--board-size) * .048); font-weight: 400; pointer-events: none; text-shadow: 0 1px 2px #fff; }
+.overdrive-label { text-shadow: none; }
 .end-overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3; pointer-events: none; }
 .end-overlay p { width: 92%; text-align: center; margin: 0; font-size: calc(var(--board-size) * .09); font-weight: 600; line-height: 1.1; color: #f02222; text-shadow: 0 1px 3px #000; animation: loss-message .65s ease-out both; }
 .bonus { position: absolute; top: 43%; left: 0; width: 100%; text-align: center; z-index: 4; color: #ffb932; font-size: calc(var(--board-size) * .07); font-weight: 600; text-shadow: 0 1px 6px #000; pointer-events: none; animation: bonus .9s ease-out forwards; }
