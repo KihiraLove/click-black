@@ -1,0 +1,14 @@
+{
+  "name": "white-tile-2",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A front-end-only recreation of the White Tile 2 reflex game.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=22" }
+}
